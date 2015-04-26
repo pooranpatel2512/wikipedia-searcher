@@ -3,8 +3,8 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.com.pooranpatel.Application.index
-POST    /search                     controllers.com.pooranpatel.Application.search
+GET     /                           com.pooranpatel.controllers.Application.index
+POST    /search                     com.pooranpatel.controllers.Application.search
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

@@ -1,9 +1,9 @@
-package controllers.com.pooranpatel
+package com.pooranpatel.controllers
 
-import play.api.libs.json.{Writes, JsPath, Reads}
-import play.api.mvc._
+import com.pooranpatel.search.Searcher
 import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{JsPath, Reads, Writes, _}
+import play.api.mvc._
 
 object Application extends Controller {
 
@@ -27,7 +27,12 @@ object Application extends Controller {
     val vr: JsResult[SearchTerms] = request.body.validate[SearchTerms]
     vr.fold(
       errors => { BadRequest("") },
-      st => { Ok(Json.toJson(st)) }
+      st => {
+        Searcher.serach(st) match {
+          case Some(results) => Ok(Json.toJson(results))
+          case None => Ok(Json.toJson(JsArray(Seq.empty)))
+        }
+      }
     )
   }
 }

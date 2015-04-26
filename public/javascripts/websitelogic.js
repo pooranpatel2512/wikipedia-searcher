@@ -1,5 +1,6 @@
 var searchModule = {
     search: function (contributor, text) {
+        $("#searchButton").addClass("loading");
         var request = $.ajax({
             url: "./search",
             method: "POST",
@@ -11,9 +12,14 @@ var searchModule = {
             })
         });
         request.done(function (result) {
-            console.log(result)
+            $("#searchButton").removeClass("loading");
+            $("#results").html("");
+            $.each(result, function(i, value) {
+                $("#results").append("<ul class=\"item\">"+value+"</ul>");
+            });
         });
         request.fail(function (jqXHR, status, msg) {
+            $("#searchButton").removeClass("loading");
             console.log(status + ", " + msg);
         });
     }

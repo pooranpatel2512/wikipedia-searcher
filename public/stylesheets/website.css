@@ -12,3 +12,7 @@ body {
 .page-padding {
 	padding: 2% !important; 
 }
+
+.ui.list>.item {
+	padding: 0em !important;
+}

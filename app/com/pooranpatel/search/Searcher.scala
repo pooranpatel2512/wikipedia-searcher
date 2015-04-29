@@ -6,28 +6,49 @@ import com.pooranpatel.controllers.Application.SearchTerms
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.queryparser.classic.QueryParser
-import org.apache.lucene.search.{ScoreDoc, TopDocs, IndexSearcher}
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser
+import org.apache.lucene.search.{Query, ScoreDoc, TopDocs, IndexSearcher}
 import org.apache.lucene.store.FSDirectory
 
 
 object Searcher {
 
-  lazy val ir = DirectoryReader.open(FSDirectory.open(Paths.get("../index")))
+  lazy val indexReader: DirectoryReader = DirectoryReader.open(FSDirectory.open(Paths.get("../index")))
 
-  lazy val is = new IndexSearcher(ir)
+  lazy val indexSearcher = new IndexSearcher(indexReader)
 
-  lazy val analyzer = new StandardAnalyzer()
+  lazy val analyzer = new WikipediaTextAnalyzer()
 
-  lazy val cParser = new QueryParser("contributor", analyzer)
+  lazy val queryParserHelper = new StandardQueryParser(analyzer)
 
-  def serach(st: SearchTerms): Option[Array[String]] = {
-    st.contributor.map { contributor =>
-      val query = cParser.parse(contributor)
-      val results = is.search(query, null, 1000).scoreDocs
-      results.map { res =>
-        is.doc(res.doc).get("title")
-      }
+  def search(searchTerms: SearchTerms): Array[String] = {
+    println(s"Searching... for = ${searchTerms}")
+
+    val stringBuilder = new StringBuilder
+    stringBuilder.append(queryForContributor(searchTerms))
+    stringBuilder.append(queryForText(searchTerms))
+
+    println(stringBuilder.toString)
+    val query = queryParserHelper.parse(stringBuilder.toString(), "")
+    val results = indexSearcher.search(query, 100).scoreDocs
+    results.map { res =>
+      indexSearcher.doc(res.doc).get("title")
     }
   }
 
+  private def queryForContributor(searchTerms: SearchTerms): String = {
+    val stringBuilder = new StringBuilder
+    searchTerms.contributor match {
+      case Some(contributor) => stringBuilder.append("contributor").append(":").append(contributor).append(" ").toString()
+      case None => ""
+    }
+  }
+
+  private def queryForText(searchTerms: SearchTerms): String = {
+    val stringBuilder = new StringBuilder
+    searchTerms.text match {
+      case Some(text) => stringBuilder.append("text").append(":").append(text).append(" ").toString()
+      case None => ""
+    }
+  }
 }

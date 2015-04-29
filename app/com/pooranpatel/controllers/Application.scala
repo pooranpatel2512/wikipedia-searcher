@@ -14,11 +14,6 @@ object Application extends Controller {
     (JsPath \ "text").readNullable[String]
   )(SearchTerms.apply _)
 
-  implicit val searchTermsWrites: Writes[SearchTerms] = (
-    (JsPath \ "contributor").writeNullable[String] and
-    (JsPath \ "text").writeNullable[String]
-  )(unlift(SearchTerms.unapply))
-
   def index = Action {
     Ok(views.html.index())
   }
@@ -28,11 +23,15 @@ object Application extends Controller {
     vr.fold(
       errors => { BadRequest("") },
       st => {
-        Searcher.serach(st) match {
-          case Some(results) => Ok(Json.toJson(results))
-          case None => Ok(Json.toJson(JsArray(Seq.empty)))
-        }
+        handleSearchRequest(st)
       }
     )
+  }
+
+  private def handleSearchRequest(searchTerms: SearchTerms) = {
+    searchTerms match {
+      case SearchTerms(None, None) => Ok(Json.toJson(JsArray(Seq.empty)))
+      case _ =>  Ok(Json.toJson(Searcher.search(searchTerms)))
+    }
   }
 }

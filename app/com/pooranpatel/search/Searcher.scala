@@ -3,19 +3,21 @@ package com.pooranpatel.search
 import java.nio.file.Paths
 
 import com.pooranpatel.controllers.Application.SearchTerms
-import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser
 import org.apache.lucene.search.{Query, ScoreDoc, TopDocs, IndexSearcher}
 import org.apache.lucene.store.FSDirectory
+import play.api.Play
+import play.api.Play.current
 
 /**
  * Singleton object which provides the searching capabilities in indexed wikipedia articles
  */
 object Searcher {
 
-  lazy val indexReader: DirectoryReader = DirectoryReader.open(FSDirectory.open(Paths.get("../index")))
+  val indexesDir = Play.application.configuration.getString("application.indexesdir").getOrElse("")
+
+  lazy val indexReader: DirectoryReader = DirectoryReader.open(FSDirectory.open(Paths.get(indexesDir)))
 
   lazy val indexSearcher = new IndexSearcher(indexReader)
 
@@ -34,7 +36,6 @@ object Searcher {
     stringBuilder.append(queryForContributor(searchTerms))
     stringBuilder.append(queryForText(searchTerms))
 
-    println(stringBuilder.toString)
     val query = queryParserHelper.parse(stringBuilder.toString(), "")
     val results = indexSearcher.search(query, 100).scoreDocs
     results.map { res =>

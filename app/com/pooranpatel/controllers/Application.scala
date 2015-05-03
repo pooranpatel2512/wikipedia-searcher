@@ -37,13 +37,17 @@ object Application extends Controller {
    * Handler for search request
    */
   def search = Action(parse.json) { request =>
-    val vr: JsResult[SearchTerms] = request.body.validate[SearchTerms]
-    vr.fold(
-      errors => { BadRequest("") },
-      st => {
-        handleSearchRequest(st)
-      }
-    )
+    if(Searcher.indexesDir.trim == "") {
+      InternalServerError("Indexes directory is not provided at the start of an application")
+    } else {
+      val vr: JsResult[SearchTerms] = request.body.validate[SearchTerms]
+      vr.fold(
+        errors => { BadRequest("") },
+        st => {
+          handleSearchRequest(st)
+        }
+      )
+    }
   }
 
   /**
@@ -54,7 +58,13 @@ object Application extends Controller {
   private def handleSearchRequest(searchTerms: SearchTerms) = {
     searchTerms match {
       case SearchTerms(None, None) => Ok(Json.toJson(JsArray(Seq.empty)))
-      case _ =>  Ok(Json.toJson(Searcher.search(searchTerms)))
+      case _ =>
+        try {
+          Ok(Json.toJson(Searcher.search(searchTerms)))
+        } catch {
+          case e: Exception =>
+            InternalServerError(s"Failed while searching, msg = ${e.getMessage}")
+        }
     }
   }
 }

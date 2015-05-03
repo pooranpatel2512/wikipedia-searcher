@@ -12,6 +12,7 @@ import org.apache.lucene.analysis.standard.UAX29URLEmailTokenizer;
 
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.lucene.analysis.Analyzer.TokenStreamComponents;
 
 /**
  * Lucene text analyzer for wikipedia article

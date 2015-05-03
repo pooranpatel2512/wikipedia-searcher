@@ -10,7 +10,9 @@ import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser
 import org.apache.lucene.search.{Query, ScoreDoc, TopDocs, IndexSearcher}
 import org.apache.lucene.store.FSDirectory
 
-
+/**
+ * Singleton object which provides the searching capabilities in indexed wikipedia articles
+ */
 object Searcher {
 
   lazy val indexReader: DirectoryReader = DirectoryReader.open(FSDirectory.open(Paths.get("../index")))
@@ -21,8 +23,12 @@ object Searcher {
 
   lazy val queryParserHelper = new StandardQueryParser(analyzer)
 
+  /**
+   * Handles search request
+   * @param searchTerms search terms entered by the user
+   * @return list of wikipedia article's titles
+   */
   def search(searchTerms: SearchTerms): Array[String] = {
-    println(s"Searching... for = ${searchTerms}")
 
     val stringBuilder = new StringBuilder
     stringBuilder.append(queryForContributor(searchTerms))
@@ -36,6 +42,11 @@ object Searcher {
     }
   }
 
+  /**
+   * Builds lucene query term for contributor using search terms entered by user
+   * @param searchTerms search terms entered by the user
+   * @return lucene query term for contributor
+   */
   private def queryForContributor(searchTerms: SearchTerms): String = {
     val stringBuilder = new StringBuilder
     searchTerms.contributor match {
@@ -44,6 +55,11 @@ object Searcher {
     }
   }
 
+  /**
+   * Builds lucene query term for wikipedia article text using search terms entered by user
+   * @param searchTerms search terms entered by the user
+   * @return lucene query for wikipedia article text
+   */
   private def queryForText(searchTerms: SearchTerms): String = {
     val stringBuilder = new StringBuilder
     searchTerms.text match {

@@ -2,8 +2,8 @@ var searchModule = {
     search: function (contributor, text) {
         $("#searchButton").addClass("loading");
         var jsonData = {};
-        if(contributor.trim() != "") jsonData["contributor"] = contributor;
-        if(text.trim() != "") jsonData["text"] = text;
+        if(contributor.trim() != "") jsonData["contributor"] = contributor.trim();
+        if(text.trim() != "") jsonData["text"] = text.trim();
         var request = $.ajax({
             url: "./search",
             method: "POST",

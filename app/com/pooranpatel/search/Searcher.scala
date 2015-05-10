@@ -3,9 +3,9 @@ package com.pooranpatel.search
 import java.nio.file.Paths
 
 import com.pooranpatel.controllers.Application.SearchTerms
-import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.index.{Term, DirectoryReader}
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser
-import org.apache.lucene.search.{Query, ScoreDoc, TopDocs, IndexSearcher}
+import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
 import play.api.Play
 import play.api.Play.current
@@ -31,41 +31,27 @@ object Searcher {
    * @return list of wikipedia article's titles
    */
   def search(searchTerms: SearchTerms): Array[String] = {
-
-    val stringBuilder = new StringBuilder
-    stringBuilder.append(queryForContributor(searchTerms))
-    stringBuilder.append(queryForText(searchTerms))
-
-    val query = queryParserHelper.parse(stringBuilder.toString(), "")
-    val results = indexSearcher.search(query, 100).scoreDocs
+    val results = indexSearcher.search(buildQuery(searchTerms), 100).scoreDocs
     results.map { res =>
       indexSearcher.doc(res.doc).get("title")
     }
   }
 
   /**
-   * Builds lucene query term for contributor using search terms entered by user
+   * Builds lucene query using search terms entered by user
    * @param searchTerms search terms entered by the user
-   * @return lucene query term for contributor
+   * @return lucene query
    */
-  private def queryForContributor(searchTerms: SearchTerms): String = {
-    val stringBuilder = new StringBuilder
+  def buildQuery(searchTerms: SearchTerms): Query = {
+    val query = new BooleanQuery()
     searchTerms.contributor match {
-      case Some(contributor) => stringBuilder.append("contributor").append(":").append(contributor).append(" ").toString()
-      case None => ""
+      case Some(contributor) => query.add(new TermQuery(new Term("contributor", contributor)), BooleanClause.Occur.MUST)
+      case None =>
     }
-  }
-
-  /**
-   * Builds lucene query term for wikipedia article text using search terms entered by user
-   * @param searchTerms search terms entered by the user
-   * @return lucene query for wikipedia article text
-   */
-  private def queryForText(searchTerms: SearchTerms): String = {
-    val stringBuilder = new StringBuilder
     searchTerms.text match {
-      case Some(text) => stringBuilder.append("text").append(":").append(text).append(" ").toString()
-      case None => ""
+      case Some(text) => query.add(new TermQuery(new Term("text", text)), BooleanClause.Occur.MUST)
+      case None =>
     }
+    query
   }
 }
